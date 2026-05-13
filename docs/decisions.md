@@ -68,3 +68,31 @@ to the source-of-truth chapter for the long explanation.
 - **`.env.example` is committed; `.env` is gitignored.** Standard
   pattern for documenting required environment variables without
   leaking secrets.
+
+## Lesson 3 — Staging & materializations
+
+- **CTE-first model structure: `source` → `renamed` → final select.**
+  Project-wide convention. Every model has the same top-to-bottom
+  shape so reading unfamiliar models is fast. See
+  [lesson-03](lesson-03-staging-and-materializations.md#the-cte-first-pattern).
+- **Inline `{{ config(materialized='view') }}` even though the
+  folder default says the same thing.** Trades redundancy for
+  locality — reading a single .sql file tells you the materialization.
+  The inline config travels with the file if it's ever moved.
+- **`try_cast`, not `cast`.** Type-coercion failures become NULLs
+  instead of build failures. Quality issues surface as test
+  failures (Lesson 4), not pipeline crashes.
+- **Lat/lng = 0 collapses to NULL.** Sentinel-to-NULL is a
+  staging-layer concern; doing it once here means downstream models
+  never have to remember the sentinel.
+- **`lower(trim(...))` + `nullif(..., '')` for string normalization.**
+  Canonicalizes casing, strips whitespace, and forces empty-string
+  results to NULL so downstream `is not null` filters work
+  consistently.
+- **Two columns from one source field (date + datetime).** Costs
+  nothing in a view, saves repeated parsing in marts. Rule: cheap
+  staging-layer derivations that ≥2 downstream models will need.
+- **File name `stg_memphis__incidents.sql` (double underscore).**
+  Community convention; disambiguates source name from table name
+  in mixed-source projects. We adopt it from day one even though we
+  currently have one source.

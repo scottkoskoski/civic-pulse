@@ -32,7 +32,7 @@ basics and focus on dbt/Snowflake mental models.
 |---|---------|----------|--------|
 | 1 | [Setup & first run](docs/lesson-01-setup-and-first-run.md) | dbt project anatomy, profiles, adapters | ✓ |
 | 2 | [Ingest & sources](docs/lesson-02-ingest-and-sources.md) | Python EL, Socrata API, `source()` | ✓ |
-| 3 | First staging model | `ref()`, view vs table materialization | — |
+| 3 | [First staging model](docs/lesson-03-staging-and-materializations.md) | `ref()`, view vs table materialization | ✓ |
 | 4 | Tests & docs | generic + singular tests, `dbt docs` | — |
 | 5 | Marts & star schema | dimensional modeling, seeds, surrogate keys | — |
 | 6 | Jinja, macros, packages | `dbt deps`, custom macros, `dbt_utils` | — |
