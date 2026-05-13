@@ -126,3 +126,38 @@ to the source-of-truth chapter for the long explanation.
 - **Docs site is a developer tool, not a deployed artifact.**
   `dbt docs serve` locally is the workflow. Hosting it would add
   GitHub Pages / S3 setup with no learning payoff right now.
+
+## Lesson 5 — Marts & star schema
+
+- **Star schema: 3 dims + 1 fact.** Date, location, offense are
+  the only dims that earn their keep (frequent filters, frequent
+  groupings, non-trivial cardinality). See
+  [lesson-05](lesson-05-marts-and-star-schema.md#why-three-dims-not-more-or-fewer).
+- **`dim_date` is a seed CSV, not a SQL model.** Determinism +
+  git-reviewability. Generation is a one-time Python script
+  whose source is captured in the lesson doc.
+- **Surrogate keys are `md5(coalesce(col, '__null__') || '|' || ...)`.**
+  Coalesce prevents NULL columns from nulling out the hash. The
+  pipe separator prevents collisions between rows like
+  `('ab','cd')` and `('a','bcd')`. Lesson 6 swaps this for
+  `dbt_utils.generate_surrogate_key`.
+- **`date_key` is YYYYMMDD as integer, not a hash.** Already a
+  good natural surrogate (compact, uniform, stable). Hashing it
+  would slow joins for no benefit.
+- **Construct `date_key` from `year() * 10000 + month() * 100 + day()`.**
+  Portable across DuckDB and Snowflake; `strftime` would tie us
+  to DuckDB.
+- **NULL-bearing dim rows are kept, not collapsed to 'Unknown'.**
+  Reflects real states of the world; preserves `IS NULL` filtering
+  as a discovery pattern; relationships tests still pass because
+  the dim contains the NULL combo.
+- **Coalesce-based join from fact to dim.** Must mirror the
+  coalesce pattern in the dim's hash; otherwise NULL = NULL fails
+  silently and orphans fact rows. Lesson 6's `generate_surrogate_key`
+  centralizes this logic.
+- **`incident_count` literal-1 column on the fact.** BI-tool
+  convention: aggregations read as `SUM(measure)` rather than
+  `COUNT(*)`. Trivial cost, real readability win.
+- **`relationships` tests on every fact-to-dim FK.** The check
+  warehouses don't enforce. They prove the join never orphans —
+  the only honest way to know the star schema is consistent.
