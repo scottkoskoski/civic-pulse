@@ -3,16 +3,9 @@
 -- Offense dimension: one row per distinct (category, description)
 -- combination observed in staging.
 --
--- Grain: (offense_category, offense_description). Expected ~100-300
--- rows depending on Memphis's offense vocabulary.
---
--- Surrogate key: md5 over the natural-key columns with NULL
--- sentinels. Same pattern as dim_location.
---
--- Note for Lesson 7: this dimension is the snapshot target. We'll
--- track changes to offense_description over time using a snapshot
--- file that uses the `check_cols` strategy, since description
--- wording occasionally gets updated upstream.
+-- Lesson 6 refactor: hand-rolled md5 replaced with
+-- dbt_utils.generate_surrogate_key, matching the dim_location and
+-- fct_incidents pattern.
 
 {{ config(materialized='table') }}
 
@@ -34,10 +27,10 @@ distinct_offenses as (
 with_key as (
 
     select
-        md5(
-            coalesce(offense_category, '__null__')    || '|' ||
-            coalesce(offense_description, '__null__')
-        ) as offense_key,
+        {{ dbt_utils.generate_surrogate_key([
+            'offense_category',
+            'offense_description',
+        ]) }} as offense_key,
         offense_category,
         offense_description
     from distinct_offenses

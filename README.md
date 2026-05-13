@@ -35,7 +35,7 @@ basics and focus on dbt/Snowflake mental models.
 | 3 | [First staging model](docs/lesson-03-staging-and-materializations.md) | `ref()`, view vs table materialization | ✓ |
 | 4 | [Tests & docs](docs/lesson-04-tests-and-docs.md) | generic + singular tests, `dbt docs` | ✓ |
 | 5 | [Marts & star schema](docs/lesson-05-marts-and-star-schema.md) | dimensional modeling, seeds, surrogate keys | ✓ |
-| 6 | Jinja, macros, packages | `dbt deps`, custom macros, `dbt_utils` | — |
+| 6 | [Jinja, macros, packages](docs/lesson-06-jinja-macros-packages.md) | `dbt deps`, custom macros, `dbt_utils` | ✓ |
 | 7 | Incremental & snapshots | `is_incremental()`, SCD2 history | — |
 | 8 | Port to Snowflake | adapter swap, COPY INTO, dialect differences | — |
 

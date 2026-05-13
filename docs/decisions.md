@@ -161,3 +161,26 @@ to the source-of-truth chapter for the long explanation.
 - **`relationships` tests on every fact-to-dim FK.** The check
   warehouses don't enforce. They prove the join never orphans —
   the only honest way to know the star schema is consistent.
+
+## Lesson 6 — Jinja, macros & packages
+
+- **`dbt_utils.generate_surrogate_key` replaces hand-rolled md5.**
+  Same logic, centralized. Eliminates the drift risk where the
+  fact's hash construction could diverge from the dim's.
+- **Custom `clean_text(col)` macro replaces the `nullif(lower(trim(...)), '')`
+  pattern.** Used 6 times in staging; one named call beats six
+  near-duplicate expressions. See
+  [lesson-06](lesson-06-jinja-macros-packages.md#2-macrosclean_textsql).
+- **One macro per file under `macros/`.** Trades a few extra files
+  for "find-file by macro name" navigation and clean grep results.
+- **Fact-table FK is computed inline by the macro, not joined out
+  of the dim.** Hash equality is deterministic from the same
+  macro call; the join is unnecessary. Side effect: lineage graph
+  changes — fct and dims are now siblings under staging instead
+  of a chain. Pedagogically accurate to how they derive.
+- **`dbt_utils` version pinned `>=1.1.0, <2.0.0`.** Same loose-
+  with-major-cap pattern we use for Python deps.
+- **Adopt `dbt_utils` rather than rolling our own `generate_surrogate_key`.**
+  Battle-tested across warehouses; one install teaches the
+  packages workflow; future helpers (safe_divide, pivot, etc.)
+  are already available.
