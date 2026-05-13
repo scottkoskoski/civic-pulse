@@ -371,38 +371,6 @@ in Lesson 3.
 
 ---
 
-## Try it yourself
-
-Active practice that deepens what you just read. None of these are
-required; pick whichever feels like the largest gap in your
-intuition.
-
-1. **Break the profile on purpose.** Rename the `civic_pulse` key
-   in `~/.dbt/profiles.yml` to something else (e.g. `xyz`) and run
-   `dbt debug`. Read the error message carefully — it teaches you
-   how dbt-core's profile lookup actually works. Restore the name
-   when done.
-
-2. **Inspect the DuckDB file before any data is loaded.** Install
-   the standalone DuckDB CLI (`brew install duckdb` or download
-   from duckdb.org). Run `duckdb civic_pulse.duckdb` then
-   `.tables` — empty, as expected. Run `.schema` — also empty.
-   This confirms that creating the file is harmless; nothing dbt
-   does yet has touched it.
-
-3. **Read the rendered `dbt_project.yml` model config.** Run
-   `dbt parse` then look at `target/manifest.json` — it's verbose
-   but searchable. Find the `"config"` block for a hypothetical
-   future model and notice how the per-folder settings cascade.
-
-4. **Add a stale schema name and watch dbt complain.** Edit
-   `dbt_project.yml` to add `+schema: nope` at the top of the
-   `models:` block (outside of `staging`/`marts`). Run
-   `dbt parse`. You'll see how dbt validates configuration
-   hierarchy. Revert when done.
-
----
-
 ## Further reading
 
 Linked sparingly, all from the official docs:
