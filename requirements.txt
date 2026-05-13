@@ -1,0 +1,17 @@
+# Python dependencies for civic-pulse
+#
+# We pin loosely (>=, <next-major) so security patches land automatically
+# but we never accidentally cross a breaking-change boundary.
+
+# --- dbt ---
+dbt-core>=1.8,<2.0
+dbt-duckdb>=1.8,<2.0
+
+# Uncommented in Lesson 8 when we port to Snowflake. Installing
+# this adapter pulls in snowflake-connector-python; that's fine
+# alongside dbt-duckdb — both adapters coexist in one venv.
+dbt-snowflake>=1.8,<2.0
+
+# --- Ingestion ---
+requests>=2.31,<3.0
+python-dotenv>=1.0,<2.0

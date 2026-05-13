@@ -1,0 +1,31 @@
+# dbt build artifacts
+target/
+dbt_packages/
+logs/
+
+# Python virtual environments
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Local DuckDB databases (we treat these as ephemeral build output)
+*.duckdb
+*.duckdb.wal
+
+# Local secrets and credentials
+.env
+.env.local
+profiles.yml
+
+# dbt docs build output
+catalog.json
+manifest.json
+run_results.json
+sources.json
+
+# Editor / OS noise
+.DS_Store
+.idea/
+.vscode/
+*.swp

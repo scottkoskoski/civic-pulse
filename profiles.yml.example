@@ -1,0 +1,40 @@
+# profiles.yml.example
+#
+# This is a TEMPLATE. Copy it to ~/.dbt/profiles.yml and edit the
+# absolute paths / Snowflake values to match your environment.
+#
+# Both targets coexist in one profile. Run `dbt build --target duckdb`
+# (the default) for local development and `dbt build --target snowflake`
+# for the Snowflake port (Lesson 8).
+
+civic_pulse:
+  target: duckdb
+  outputs:
+
+    # --- Local development target (Lessons 1-7) ---
+    duckdb:
+      type: duckdb
+      # Absolute path to the local DuckDB database file. dbt creates
+      # it on first connect. Lives at the repo root by convention,
+      # gitignored as *.duckdb.
+      path: /ABSOLUTE/PATH/TO/civic-pulse/civic_pulse.duckdb
+      schema: main
+      threads: 4
+
+    # --- Snowflake target (Lesson 8) ---
+    # Replace placeholders with values from your trial account.
+    # The password is read from an env var; never paste it inline.
+    # If you use SSO, swap `password:` for `authenticator: externalbrowser`.
+    snowflake:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"   # e.g. xy12345.us-east-1
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'ACCOUNTADMIN') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'COMPUTE_WH') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'CIVIC_PULSE') }}"
+      # Default schema. Per-folder schemas in dbt_project.yml
+      # (staging, marts, snapshots) override this.
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'STAGING') }}"
+      threads: 4
+      client_session_keep_alive: false

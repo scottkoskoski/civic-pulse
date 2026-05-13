@@ -1,0 +1,18 @@
+# packages.yml
+#
+# dbt's package manager pulls in reusable macros and models from
+# other dbt projects (think npm/pip for dbt). `dbt deps` clones each
+# package into ./dbt_packages/.
+#
+# `dbt_utils` is the canonical utility library: surrogate-key
+# generation, type-safe comparison helpers, pivot/unpivot, a slew
+# of generic tests, and date-spine utilities. We use it primarily
+# for `generate_surrogate_key` (Lesson 6).
+#
+# Version constraint: the loose range `>=1.1.0, <2.0.0` lets us
+# pick up patch releases automatically without crossing a major
+# breaking boundary.
+
+packages:
+  - package: dbt-labs/dbt_utils
+    version: [">=1.1.0", "<2.0.0"]

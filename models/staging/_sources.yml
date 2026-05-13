@@ -1,0 +1,40 @@
+# models/staging/_sources.yml
+#
+# A "source" in dbt is the bridge between data dbt did NOT produce
+# (raw tables loaded by some other process — here, our Python script)
+# and the dbt project's lineage graph.
+#
+# Declaring `raw.incidents` here gives us three things:
+#   1. Models can reference it as {{ source('memphis', 'incidents') }}.
+#      dbt resolves that at compile time to the fully-qualified
+#      physical name (`raw.incidents` in DuckDB, `RAW.INCIDENTS` in
+#      Snowflake). Models stay portable across warehouses.
+#   2. The raw table appears as a node in `dbt docs` and in the
+#      lineage graph, so the project's data flow is visible end-to-end.
+#   3. We can attach descriptions, tests, and freshness checks to it
+#      (Lesson 4 adds the tests).
+#
+# Naming convention: files starting with an underscore sort to the top
+# of file listings, making project-level config easy to find amid the
+# model files that share the directory.
+
+version: 2
+
+sources:
+  - name: memphis
+    description: >
+      Raw data ingested from the City of Memphis open data portal
+      (data.memphistn.gov) via Socrata's SODA API. Loaded by
+      `data-engineering/ingest/load_memphis_crime.py` on a manual cadence.
+
+    # The physical schema in DuckDB where the loader writes. dbt joins
+    # this with the source's `name:` to produce the source reference.
+    schema: raw
+
+    tables:
+      - name: incidents
+        description: >
+          Public-safety incident reports filed by the Memphis Police
+          Department. One row per reported incident. Columns reflect
+          the raw Socrata response with no transformation; staging
+          models handle cleanup and type coercion in Lesson 3.

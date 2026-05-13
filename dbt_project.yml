@@ -1,0 +1,69 @@
+# dbt_project.yml
+#
+# This file is dbt's entry point. When you run `dbt run`, dbt walks
+# the current directory upward looking for this file to figure out
+# which project it's operating on.
+#
+# Everything below is a directive for dbt's compiler:
+#   - where to find models, seeds, snapshots, macros, tests, analyses
+#   - what profile (i.e. which connection) to use from ~/.dbt/profiles.yml
+#   - per-folder defaults for things like materialization and schema name
+#
+# Anything you set here can be overridden at the model level via
+# `{{ config(...) }}` blocks inside individual .sql files.
+
+name: 'civic_pulse'
+version: '0.1.0'
+config-version: 2
+
+# This name must match a top-level key in ~/.dbt/profiles.yml.
+# That's how dbt knows which warehouse credentials to use.
+profile: 'civic_pulse'
+
+# --- Where dbt looks for things ---
+# These are the defaults; we list them explicitly so the project
+# layout is self-documenting.
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+# --- Where dbt puts its build artifacts ---
+# These are gitignored. `target/` holds compiled SQL + run results;
+# `dbt_packages/` holds dependencies installed by `dbt deps`.
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# --- Per-folder model defaults ---
+# Staging models are cheap to rebuild and typically just rename/cast,
+# so we materialize them as views (zero storage cost, always fresh).
+#
+# Marts models hold the analytical truth of the project. Materializing
+# them as tables means BI queries hit physical storage instead of
+# re-running the staging SQL every time.
+#
+# These are *defaults*. Any individual model can override with a
+# {{ config(materialized='...') }} block at the top of its .sql file.
+models:
+  civic_pulse:
+    staging:
+      +materialized: view
+      +schema: staging
+    marts:
+      +materialized: table
+      +schema: marts
+
+# Seeds (CSV files compiled into tables) land in the marts schema
+# alongside the dimensional models that use them.
+seeds:
+  civic_pulse:
+    +schema: marts
+
+# Snapshots track slowly-changing dimensions over time. They live
+# in their own schema so it's easy to query "the full history of X".
+snapshots:
+  civic_pulse:
+    +target_schema: snapshots
