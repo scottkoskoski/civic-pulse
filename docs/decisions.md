@@ -41,3 +41,30 @@ to the source-of-truth chapter for the long explanation.
 - **`packages.yml` exists from day one, but empty.** Signals to readers
   that we will add packages later (Lesson 6). One less file to introduce
   mid-tutorial.
+
+## Lesson 2 — Ingest & sources
+
+- **Extract + load lives in Python, not dbt.** dbt is the T in ELT.
+  Mixing API extraction with transformation conflates failure modes
+  (a 429 from Socrata shouldn't fail `dbt run`). See
+  [lesson-02](lesson-02-ingest-and-sources.md#1-data-engineeringingestload_memphis_crimepy).
+- **Loader writes via a temp JSONL file + DuckDB's `read_json_auto`.**
+  Avoids depending on pandas/pyarrow, handles Socrata's sparse JSON
+  cleanly, and demonstrates a useful DuckDB feature. Considered and
+  rejected: per-row INSERTs (requires pre-knowing the schema), pandas
+  bulk-load (extra dependency).
+- **`CREATE OR REPLACE TABLE` on every load.** Idempotent and trivially
+  correct for small datasets. Lesson 7's incremental materialization
+  handles the scale-up case.
+- **Dataset id is read from `SOCRATA_DATASET_ID`, never hardcoded.**
+  Memphis occasionally republishes datasets under new ids; an env
+  var forces a one-time setup choice instead of silent rot.
+- **Source name is `memphis`, table is `incidents`.** Short, stable,
+  and leaves the namespace open for other Memphis datasets later
+  (311, permits) without rename pain.
+- **`_sources.yml` lives in `models/staging/`.** Sources sit
+  conceptually upstream of staging, so co-locating the YAML with
+  the consumers makes lineage navigation obvious.
+- **`.env.example` is committed; `.env` is gitignored.** Standard
+  pattern for documenting required environment variables without
+  leaking secrets.
