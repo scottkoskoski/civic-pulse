@@ -2,23 +2,46 @@
 --
 -- Incident fact table. Grain: one row per reported incident.
 --
--- Lesson 6 refactor: the coalesce-based join is replaced with a
--- hash-equality join using the same surrogate-key macro the dims
--- use. Cleaner SQL, and guarantees the fact-side hash matches the
--- dim-side hash because they call the same macro.
+-- Lesson 7 refactor: now incremental. The first dbt build is a
+-- full table-as-select; subsequent builds only process staging
+-- rows whose offense_datetime is newer than what's already in
+-- the fact (minus a 7-day lookback for late-arriving data),
+-- merging on incident_id to handle the rare case where a row
+-- gets updated upstream.
 --
--- Why is `incident_count` a column of all 1s? Two reasons:
---   1. It makes BI-tool SUM aggregations explicit. `SUM(incident_count)`
---      reads more clearly than `COUNT(*)` in a Looker/Tableau metric.
---   2. It makes the model future-proof: if MPD ever starts publishing
---      multiplicity, we replace the literal 1 with that column
---      without touching any downstream consumer.
+-- The unique_key + merge strategy means re-ingesting the entire
+-- raw dataset (full-refresh of the loader) and then running
+-- `dbt build` still produces correct results — duplicates merge
+-- by incident_id, no manual cleanup needed.
+--
+-- To rebuild from scratch (e.g., schema changes, want a clean
+-- table): `dbt build --select fct_incidents --full-refresh`.
 
-{{ config(materialized='table') }}
+{{ config(
+    materialized='incremental',
+    unique_key='incident_id',
+    on_schema_change='append_new_columns'
+) }}
 
 with incidents as (
 
     select * from {{ ref('stg_memphis__incidents') }}
+
+    {% if is_incremental() %}
+    -- Incremental filter: only process staging rows newer than
+    -- the latest already-stored offense_datetime, minus a 7-day
+    -- lookback window to catch late-arriving / backdated rows.
+    -- The merge step then de-duplicates by incident_id.
+    --
+    -- {{ this }} is a Jinja reference to the model currently being
+    -- built — i.e., the existing fct_incidents table in the
+    -- warehouse. We use it to look up the high-water mark.
+    where offense_datetime >= (
+        select coalesce(max(offense_datetime), '1900-01-01'::timestamp)
+             - interval '7 days'
+        from {{ this }}
+    )
+    {% endif %}
 
 ),
 
@@ -27,16 +50,10 @@ joined as (
     select
         i.incident_id,
 
-        -- Date key as YYYYMMDD integer. Constructed from
-        -- year/month/day primitives for DuckDB <> Snowflake portability.
         (year(i.offense_date)  * 10000
        + month(i.offense_date) * 100
        + day(i.offense_date))                       as date_key,
 
-        -- Surrogate FKs computed inline. The macro produces the
-        -- identical hash to what dim_location/dim_offense built;
-        -- the join is one hash-equality comparison per dim instead
-        -- of three coalesce-equality comparisons.
         {{ dbt_utils.generate_surrogate_key([
             'i.ward',
             'i.precinct',
@@ -48,7 +65,6 @@ joined as (
             'i.offense_description',
         ]) }} as offense_key,
 
-        -- Attributes that don't roll up to a dim:
         i.offense_datetime,
         i.latitude,
         i.longitude,

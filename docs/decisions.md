@@ -184,3 +184,36 @@ to the source-of-truth chapter for the long explanation.
   Battle-tested across warehouses; one install teaches the
   packages workflow; future helpers (safe_divide, pivot, etc.)
   are already available.
+
+## Lesson 7 — Incremental & snapshots
+
+- **`fct_incidents` is incremental with `unique_key='incident_id'`
+  and `merge` strategy.** Re-builds only process the lookback
+  window; merge de-duplicates by natural key. See
+  [lesson-07](lesson-07-incremental-and-snapshots.md#1-incremental-fct_incidentssql).
+- **7-day lookback window for incremental filter.** Catches
+  backdated rows from data-entry lag while keeping the
+  incremental advantage. Tunable based on the source's actual
+  lateness behavior.
+- **`on_schema_change='append_new_columns'`.** Safer than the
+  default `'ignore'` — schema additions don't silently lose data.
+- **Snapshot is sourced from staging, not from `dim_offense`.**
+  `dim_offense`'s surrogate key depends on the tracked attribute,
+  so a category change would change the key and break SCD-2
+  detection. The snapshot keys on `offense_description` (the
+  upstream natural key) which stays stable across category
+  reclassifications.
+- **Snapshot uses `strategy='check'`, not `'timestamp'`.** Source
+  has no last-updated column to trust. The check strategy diffs
+  attributes on each run.
+- **Snapshot lives in `snapshots/` directory with `target_schema='snapshots'`.**
+  Separate filesystem location matches dbt's different lifecycle
+  (history accumulates instead of rebuilding); separate schema
+  makes ad-hoc history queries obvious.
+- **`select distinct` inside the snapshot.** Required because
+  the source (staging) has many rows per unique_key; distinct
+  collapses to one row per offense_description.
+- **Pedagogical-only incremental for our scale.** At ~100k rows
+  the full-refresh table would be fine. We refactor anyway to
+  teach the pattern before Lesson 8's Snowflake port, where the
+  compute savings would be real.
