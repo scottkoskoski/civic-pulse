@@ -96,3 +96,33 @@ to the source-of-truth chapter for the long explanation.
   Community convention; disambiguates source name from table name
   in mixed-source projects. We adopt it from day one even though we
   currently have one source.
+
+## Lesson 4 — Tests & docs
+
+- **Tests on the staging output, not the raw source.** Cleanup
+  (try_cast, sentinel coercion) must run first; tests assert the
+  post-staging state. Source tests make sense for external SaaS
+  loads but not for our self-loaded raw schema. See
+  [lesson-04](lesson-04-tests-and-docs.md#test-the-staging-contract-dont-yet-test-the-source).
+- **Use `data_tests:` not `tests:`.** Modern dbt key name (1.8+);
+  the older form still works but throws a deprecation warning.
+- **Tests on keys + business-critical columns only.** `not_null`
+  + `unique` on `incident_id`, `not_null` on `offense_date`,
+  singular test on date-is-not-future. We don't test every column
+  — too much noise, too much build cost, too many false failures.
+- **No `accepted_values` on `offense_category`.** The Memphis
+  category vocabulary changes year-over-year; hardcoding a list
+  would fail every time MPD adds or renames a category. The
+  `relationships` test from fact-to-dim in Lesson 5 is the better
+  surface for "unknown category."
+- **Singular test for "no future dates" instead of a custom
+  generic.** For a one-off invariant on one model, the singular
+  test in `tests/assert_*.sql` is less ceremony than a parameterized
+  generic. Generic tests pay off when reused across models.
+- **`dbt build` is the default day-to-day command.** It interleaves
+  model build and test execution, skipping downstream models when
+  upstream tests fail. Saves compute and surfaces failures at the
+  right layer.
+- **Docs site is a developer tool, not a deployed artifact.**
+  `dbt docs serve` locally is the workflow. Hosting it would add
+  GitHub Pages / S3 setup with no learning payoff right now.

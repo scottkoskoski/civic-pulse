@@ -1,0 +1,87 @@
+# models/staging/_stg_models.yml
+#
+# Schema definition for the staging layer: model descriptions,
+# column descriptions, and generic data tests.
+#
+# This file is where the staging contract is recorded. Anything
+# downstream that depends on this model can rely on the columns
+# named here existing with the documented meanings, and on the
+# tested invariants holding (or the build failing loudly).
+#
+# Generic tests defined here run as part of `dbt test`. They expand
+# into compiled SQL queries that should return zero rows; any row
+# returned is a test failure. dbt's built-in generic tests are
+# `not_null`, `unique`, `accepted_values`, and `relationships`.
+#
+# `_sources.yml` (this directory) covers the source side of the
+# contract. `_stg_models.yml` covers the model side. Convention:
+# one schema YAML per layer.
+
+version: 2
+
+models:
+  - name: stg_memphis__incidents
+    description: >
+      One row per Memphis Police Department incident, with column
+      names normalized to snake_case, types coerced from Socrata's
+      string defaults, and known sentinel values (lat/lng = 0) mapped
+      to NULL. The contract surface for everything downstream.
+
+    columns:
+      - name: incident_id
+        description: >
+          Natural key from the source system. Uniquely identifies
+          one incident report. Stays VARCHAR because Socrata returns
+          it as a string and we don't gain anything by integer-izing.
+        data_tests:
+          - not_null
+          - unique
+
+      - name: offense_date
+        description: >
+          The date the incident occurred, parsed from Socrata's
+          combined date-time field. The grain of dim_date joins.
+        data_tests:
+          - not_null
+
+      - name: offense_datetime
+        description: >
+          Full timestamp of the incident. Use when hour-of-day or
+          minute-level analysis matters; otherwise prefer
+          offense_date for cleaner grouping.
+
+      - name: offense_description
+        description: >
+          Human-readable description of the offense, lowercased and
+          trimmed. Higher cardinality than offense_category — useful
+          for drilling down inside a category.
+
+      - name: offense_category
+        description: >
+          Broader classification of the offense, lowercased and
+          trimmed. The grain of dim_offense in Lesson 5.
+
+      - name: latitude
+        description: >
+          Latitude in decimal degrees (WGS 84). NULL when the source
+          provided either a literal NULL or the (0, 0) sentinel.
+
+      - name: longitude
+        description: >
+          Longitude in decimal degrees (WGS 84). NULL when the source
+          provided either a literal NULL or the (0, 0) sentinel.
+
+      - name: street_address
+        description: >
+          Free-text address string from the source. May be a block
+          range ("1500 BLK MAIN ST") rather than a specific address —
+          MPD anonymizes some incidents to block level.
+
+      - name: ward
+        description: City ward of the incident, as a string identifier.
+
+      - name: precinct
+        description: MPD precinct that handled the incident.
+
+      - name: council_district
+        description: City Council district of the incident.
