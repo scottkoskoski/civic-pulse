@@ -37,7 +37,7 @@ basics and focus on dbt/Snowflake mental models.
 | 5 | [Marts & star schema](docs/lesson-05-marts-and-star-schema.md) | dimensional modeling, seeds, surrogate keys | ✓ |
 | 6 | [Jinja, macros, packages](docs/lesson-06-jinja-macros-packages.md) | `dbt deps`, custom macros, `dbt_utils` | ✓ |
 | 7 | [Incremental & snapshots](docs/lesson-07-incremental-and-snapshots.md) | `is_incremental()`, SCD2 history | ✓ |
-| 8 | Port to Snowflake | adapter swap, COPY INTO, dialect differences | — |
+| 8 | [Port to Snowflake](docs/lesson-08-port-to-snowflake.md) | adapter swap, COPY INTO, dialect differences | ✓ |
 
 The [`docs/decisions.md`](docs/decisions.md) file is a running log of
 every non-trivial design choice — useful as a flat reference when

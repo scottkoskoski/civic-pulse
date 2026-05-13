@@ -1,22 +1,11 @@
 # profiles.yml.example
 #
 # This is a TEMPLATE. Copy it to ~/.dbt/profiles.yml and edit the
-# absolute paths to match your machine. dbt looks for profiles.yml
-# in ~/.dbt/ by default (override with $DBT_PROFILES_DIR).
+# absolute paths / Snowflake values to match your environment.
 #
-# Why outside the repo? Because real Snowflake credentials end up
-# here. Keeping the file in your home directory means a careless
-# `git add .` cannot accidentally commit them. Our .gitignore also
-# excludes profiles.yml in the repo root as belt-and-suspenders.
-#
-# A "profile" is a named bundle of connections. The top-level key
-# `civic_pulse` must match the `profile:` field in dbt_project.yml.
-# Inside it, each named entry under `outputs:` is a "target" —
-# a specific environment (dev, prod, etc.) or, in our case, a
-# specific warehouse (duckdb, snowflake).
-#
-# `target:` picks the default; override per-command with
-# `dbt run --target snowflake`.
+# Both targets coexist in one profile. Run `dbt build --target duckdb`
+# (the default) for local development and `dbt build --target snowflake`
+# for the Snowflake port (Lesson 8).
 
 civic_pulse:
   target: duckdb
@@ -25,34 +14,27 @@ civic_pulse:
     # --- Local development target (Lessons 1-7) ---
     duckdb:
       type: duckdb
-      # Path to the local DuckDB database file. dbt creates it on
-      # first run. We point at the repo root so the file lives
-      # alongside the project (and is gitignored as *.duckdb).
+      # Absolute path to the local DuckDB database file. dbt creates
+      # it on first connect. Lives at the repo root by convention,
+      # gitignored as *.duckdb.
       path: /ABSOLUTE/PATH/TO/civic-pulse/civic_pulse.duckdb
-      # DuckDB has a notion of "schemas" inside a single database
-      # file. This is the schema dbt writes to unless a model
-      # config or dbt_project.yml overrides it.
       schema: main
-      # How many models dbt builds in parallel. DuckDB is in-process
-      # and single-writer; threads >1 mostly help with compile time.
       threads: 4
 
     # --- Snowflake target (Lesson 8) ---
-    # Stays commented until Lesson 8 so you don't trip over missing
-    # credentials before then. When you reach Lesson 8, uncomment
-    # this block and fill in your trial-account values.
-    #
-    # snowflake:
-    #   type: snowflake
-    #   account: xy12345.us-east-1     # from your Snowflake URL
-    #   user: YOUR_USER
-    #   # Pick ONE authentication method:
-    #   password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"  # read from env, never hardcode
-    #   # ...or for SSO:
-    #   # authenticator: externalbrowser
-    #   role: ACCOUNTADMIN              # fine for a learning trial; lock down for real use
-    #   warehouse: COMPUTE_WH           # the XS warehouse Snowflake creates by default
-    #   database: CIVIC_PULSE
-    #   schema: STAGING                 # default schema; dbt_project.yml overrides per folder
-    #   threads: 4
-    #   client_session_keep_alive: false
+    # Replace placeholders with values from your trial account.
+    # The password is read from an env var; never paste it inline.
+    # If you use SSO, swap `password:` for `authenticator: externalbrowser`.
+    snowflake:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"   # e.g. xy12345.us-east-1
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'ACCOUNTADMIN') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'COMPUTE_WH') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'CIVIC_PULSE') }}"
+      # Default schema. Per-folder schemas in dbt_project.yml
+      # (staging, marts, snapshots) override this.
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'STAGING') }}"
+      threads: 4
+      client_session_keep_alive: false

@@ -217,3 +217,36 @@ to the source-of-truth chapter for the long explanation.
   the full-refresh table would be fine. We refactor anyway to
   teach the pattern before Lesson 8's Snowflake port, where the
   compute savings would be real.
+
+## Lesson 8 — Port to Snowflake
+
+- **Both DuckDB and Snowflake targets live in one profile.**
+  `dbt build` defaults to DuckDB; `dbt build --target snowflake`
+  switches per invocation. No fork of the project. See
+  [lesson-08](lesson-08-port-to-snowflake.md#7-configure-the-snowflake-profile).
+- **`ACCOUNTADMIN` role for the trial.** Production deployments
+  define a narrower `DBT_RUNNER` role; for learning that's
+  unnecessary ceremony.
+- **Internal stage, not external (S3/GCS).** Avoids a second
+  cloud setup. External stages are the production pattern; the
+  dbt model lineage doesn't change either way.
+- **Parquet export, not CSV.** Schema-embedded → Snowflake
+  `INFER_SCHEMA` builds the table for us; columnar + compressed
+  → 5x smaller; type-preserving → no cast guesswork on the
+  Snowflake side.
+- **`match_by_column_name = 'case_insensitive'`.** Robust against
+  column-order drift between Parquet and table. Snowflake folds
+  unquoted identifiers to UPPERCASE; case-insensitive matching
+  hides that lift from us.
+- **`auto_suspend = 60` on the warehouse.** Trial credits last
+  meaningfully longer when the warehouse isn't paid for during
+  read-and-think breaks. `auto_resume = true` brings it back
+  the moment dbt or the web console issues a query.
+- **`env_var(...)` for Snowflake credentials in `profiles.yml`.**
+  Even though the profile lives outside the repo, paste-by-mistake
+  is a real failure mode. Env vars give us a hard wall.
+- **Three portability rules baked into earlier lessons.** `try_cast`
+  not `safe_cast`, `year/month/day` primitives not `strftime`,
+  `dbt_utils.generate_surrogate_key` not hand-rolled md5. Each
+  was a deliberate choice in Lessons 3-6 to make Lesson 8 a
+  zero-edit port.

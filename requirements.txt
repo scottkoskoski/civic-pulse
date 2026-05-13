@@ -2,19 +2,16 @@
 #
 # We pin loosely (>=, <next-major) so security patches land automatically
 # but we never accidentally cross a breaking-change boundary.
-#
-# dbt-core is implicitly installed by dbt-duckdb, but we list it explicitly
-# so the version constraint is visible to readers.
 
 # --- dbt ---
 dbt-core>=1.8,<2.0
 dbt-duckdb>=1.8,<2.0
 
-# dbt-snowflake is added in Lesson 8 when we port to Snowflake.
-# Uncomment the line below at that point. We keep it commented now so
-# Lessons 1-7 don't need Snowflake credentials at install time.
-# dbt-snowflake>=1.8,<2.0
+# Uncommented in Lesson 8 when we port to Snowflake. Installing
+# this adapter pulls in snowflake-connector-python; that's fine
+# alongside dbt-duckdb — both adapters coexist in one venv.
+dbt-snowflake>=1.8,<2.0
 
-# --- Ingestion (Lesson 2) ---
+# --- Ingestion ---
 requests>=2.31,<3.0
 python-dotenv>=1.0,<2.0
