@@ -509,6 +509,6 @@ is monotonic.)
   - The difference between incremental and snapshot.
   - When `is_incremental()` returns True vs False.
 
-**Next:** [Lesson 8 — Port to Snowflake](docs/lesson-08-port-to-snowflake.md). With the
+**Next:** [Lesson 8 — Port to Snowflake](lesson-08-port-to-snowflake.md). With the
 project in working order on DuckDB, we add a Snowflake target
 and prove the same models build against both warehouses.
