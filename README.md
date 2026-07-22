@@ -28,6 +28,7 @@ eight weeks.
 - [Design decisions](#design-decisions)
 - [What's intentionally excluded](#whats-intentionally-excluded)
 - [Beyond this project](#beyond-this-project)
+- [License](#license)
 
 ---
 
@@ -344,3 +345,9 @@ Directions to explore once the fundamentals feel automatic
 None of these are required to be productive with dbt. They're the
 next 10% once the fundamentals from this tutorial are second
 nature.
+
+---
+
+## License
+
+[MIT](LICENSE). Use, fork, teach with it, remix it — go for it.
